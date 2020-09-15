@@ -251,9 +251,9 @@ private fun listOfConstructor(
         return "listOf()"
     }
     return "listOf(${
-        list.joinToString(",\n") {
-            it.split("\n").map { (escapeKotlin(it)).wrapWithQuotes() }.joinToString(" +\n")
-        }
+    list.joinToString(",\n") {
+        it.split("\n").map { (escapeKotlin(it)).wrapWithQuotes() }.joinToString(" +\n")
+    }
     })"
 }
 
@@ -264,15 +264,15 @@ private fun mapOfConstructor(
         return "mapOf()"
     }
     return "mapOf(${
-        entries.map {
-            "\"${it.key}\" to \"${
-                escapeKotlin(
-                    if (it.value is Map<*, *>) {
-                        jacksonObjectMapper().writeValueAsString(it.value as Map<*, *>)
-                    } else it.value.toString() //TODO check when is Int
-                )
-            }\""
-        }.joinToString(",\n")
+    entries.map {
+        "\"${it.key}\" to \"${
+        escapeKotlin(
+            if (it.value is Map<*, *>) {
+                jacksonObjectMapper().writeValueAsString(it.value as Map<*, *>)
+            } else it.value.toString() //TODO check when is Int
+        )
+        }\""
+    }.joinToString(",\n")
     })"
 }
 
