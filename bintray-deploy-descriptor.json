@@ -1,0 +1,23 @@
+{
+    "package": {
+        "name": "$name",
+        "repo": "maven",
+        "subject": "chutney-testing",
+        "vcs_url": "$url",
+        "licenses": ["Apache-2.0"]
+    },
+
+    "version": {
+        "name": "$version",
+        "released": "$timestamp",
+        "vcs_tag": "$version"
+    },
+
+    "files":
+    [
+        {"includePattern": "build/publications/default/pom-default.xml", "uploadPattern": "com/chutneytesting/$name/$version/${name}-${version}.pom"},
+        {"includePattern": "build/libs/(.*\\.jar)", "uploadPattern": "com/chutneytesting/$name/$version/\$1"}
+    ],
+
+    "publish": true
+}

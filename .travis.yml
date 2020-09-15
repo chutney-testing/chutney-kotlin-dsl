@@ -30,7 +30,7 @@ deploy:
     key:
       secure: G8rXzZ+z+E0KD4R3hO4EnRQweczB8JCIUB12PiBEa+85qzGGjG07ilzGTZjSutueU4iTu2N39G+MFvYC+vyqV1ufb5/CqkGin9yb3MfGwntN0HMWg4j6ODEQ5Af9vwoqHgJYu0ch3GiklNIA2AVppGM7ECqssouEJxdNzKYVolXTpRqMbaRnFXFi8ir2pVwv71zq9GkpfnOaCef3AsZ3AdOlPXzhmQoh2ORZbsFk3mr81OYiPQgvgAme/gw9uZPDBOn2XrzF8Vk5LAh+cJmN4LixDXflaHZg9MsJdboWpFKksDzw7vHnjcintxbQmolC1p45OQSbxvCsTR1JjeZ/+5fWSEGppIgUy2+ADxR/n+CRuhl6o4Q96LqFKo/aOzlenhxE1TzdV7tdEpsHTfFzXOAO7hr6gtYNAwSB/XoslFWyUHxETxUaZk9MQ6o/tBFcwDylGWEjiUKeY8dHvthnQL+EMJUvgbtE1+LzVTX7IimjpyEHU0pbNJmxugn1ZPaNGtsTpnWEfF5n8f0GeN8s1rgRn3w9vlnr74rNGC8uQf4rn2cb8dGlsksRznZOV1jKQJIWXwrXWGMzs0sX/lVtnw/tZCeYzVcELQQyWcEENz3zddlRGxtMVxZpYiaBarOrK0iomjsp7WaNaZUKGzsxUMIGESQkLE0od5WB2UAV3n0=
     on:
-      repo: chutney-testing/chutney
+      repo: chutney-testing/chutney-kotlin-dsl
       all_branches: true
       tags: true
       condition: PROJECT_VERSION = $TRAVIS_TAG

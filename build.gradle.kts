@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 plugins {
     `maven-publish`
@@ -7,6 +9,9 @@ plugins {
 
 group = "com.chutneytesting"
 version = "0.1-SNAPSHOT"
+
+val timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+val url = "https://github.com/chutney-testing/chutney-kotlin-dsl";
 
 repositories {
     mavenCentral()
@@ -28,6 +33,12 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+tasks.register<Copy>("bintrayfilter") {
+    from("bintray-deploy-descriptor.json")
+    into("$buildDir")
+    expand("url" to url, "version" to version, "name" to project.name, "timestamp" to timestamp)
+}
+
 tasks {
     val sourcesJar by creating(Jar::class) {
         archiveClassifier.set("sources")
@@ -45,14 +56,19 @@ tasks {
             showStandardStreams = true
         }
     }
+
+    build {
+        dependsOn("bintrayfilter")
+    }
 }
+
 
 publishing {
     publications {
         create<MavenPublication>("default") {
             from(components["java"])
             pom {
-                url.set("https://github.com/chutney-testing/chutney-kotlin-dsl")
+                url.set(url)
                 inceptionYear.set("2020")
                 licenses {
                     license {
