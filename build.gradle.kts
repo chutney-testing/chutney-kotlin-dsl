@@ -5,13 +5,18 @@ import java.time.format.DateTimeFormatter
 plugins {
     `maven-publish`
     kotlin("jvm") version "1.4.0"
+    id("org.ajoberstar.reckon") version "0.12.0"
+}
+
+reckon {
+    scopeFromProp()
+    snapshotFromProp()
 }
 
 group = "com.chutneytesting"
-version = "0.1-SNAPSHOT"
 
 val timestamp: String = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-val gitHubUrl = "https://github.com/chutney-testing/chutney-kotlin-dsl"
+val gitHubUrl = "https://github.com/chutney-testing/${project.name}"
 
 repositories {
     mavenCentral()
@@ -23,6 +28,8 @@ repositories {
 
 dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.0")
+    implementation("org.jetbrains.kotlin:kotlin-script-runtime:1.4.0")
 
     testImplementation(kotlin("test-junit"))
     testImplementation("com.gregwoodfill.assert:kotlin-json-assert:0.1.0")
@@ -62,7 +69,6 @@ tasks {
     }
 }
 
-
 publishing {
     publications {
         create<MavenPublication>("default") {
@@ -81,7 +87,7 @@ publishing {
                     url.set("${gitHubUrl}.git")
                     connection.set("scm:git:git@github.com:chutney-testing/${project.name}.git")
                     developerConnection.set("scm:git:git@github.com:chutney-testing/${project.name}.git")
-                    tag.set("HEAD")
+                    tag.set(project.version.toString().takeUnless { it.endsWith("SNAPSHOT") })
                 }
                 issueManagement {
                     system.set("github")

@@ -16,10 +16,8 @@ jdk: openjdk8
 install: skip
 
 script:
-  - export PROJECT_VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
-  - echo "PROJECT_VERSION ${PROJECT_VERSION} - TRAVIS_TAG ${TRAVIS_BRANCH} - TRAVIS_BRANCH ${TRAVIS_BRANCH}"
+  - echo "TRAVIS_TAG ${TRAVIS_TAG} - TRAVIS_BRANCH ${TRAVIS_BRANCH}"
   - ./gradlew build
-  - ./gradlew generatePomFileForDefaultPublication
 
 deploy:
 
@@ -31,9 +29,8 @@ deploy:
       secure: G8rXzZ+z+E0KD4R3hO4EnRQweczB8JCIUB12PiBEa+85qzGGjG07ilzGTZjSutueU4iTu2N39G+MFvYC+vyqV1ufb5/CqkGin9yb3MfGwntN0HMWg4j6ODEQ5Af9vwoqHgJYu0ch3GiklNIA2AVppGM7ECqssouEJxdNzKYVolXTpRqMbaRnFXFi8ir2pVwv71zq9GkpfnOaCef3AsZ3AdOlPXzhmQoh2ORZbsFk3mr81OYiPQgvgAme/gw9uZPDBOn2XrzF8Vk5LAh+cJmN4LixDXflaHZg9MsJdboWpFKksDzw7vHnjcintxbQmolC1p45OQSbxvCsTR1JjeZ/+5fWSEGppIgUy2+ADxR/n+CRuhl6o4Q96LqFKo/aOzlenhxE1TzdV7tdEpsHTfFzXOAO7hr6gtYNAwSB/XoslFWyUHxETxUaZk9MQ6o/tBFcwDylGWEjiUKeY8dHvthnQL+EMJUvgbtE1+LzVTX7IimjpyEHU0pbNJmxugn1ZPaNGtsTpnWEfF5n8f0GeN8s1rgRn3w9vlnr74rNGC8uQf4rn2cb8dGlsksRznZOV1jKQJIWXwrXWGMzs0sX/lVtnw/tZCeYzVcELQQyWcEENz3zddlRGxtMVxZpYiaBarOrK0iomjsp7WaNaZUKGzsxUMIGESQkLE0od5WB2UAV3n0=
     on:
       repo: chutney-testing/chutney-kotlin-dsl
-      all_branches: true
+      branch: master
       tags: true
-      condition: PROJECT_VERSION = $TRAVIS_TAG
 
   - provider: releases
     skip_cleanup: true
@@ -43,9 +40,8 @@ deploy:
       secure: PomXiVGmmaZRg+pjS7hTG9X+WaBaTkVjTwXkua/HNn7eRdweNz2gSMOjBRiuzADS/q/s2zuB4JVhX87BJ2r1/93NZtvs0UwdUTeectfdshJocQYBpS5oDpWUnOeKTkOpZTsTLXXneJ95y8z3Ai+L6urlQTACLlWJ1ZaDnk4+TlDyEW3OZPZKrY6qltHTE+niSlXdEtfri+qExUR5hFM5JOHqYtc3Qzmv/fJrL9Smk9O4a+5piBwdJQN2KoTM0BIduViboOw+YcakkIY9TyCpOCsqhLoGx1IV20h+jfzC/JBm+tpFfAXLWgDQsP/XV3dFkhzEbwWqzABfuVjnUakz81DFzgK9whdTKOIqwIzySUrKhJg/FHaoNYUXmjNCggoeFp4mjLcOuWEhV+bJTWhGMMWxC7Vm7gsSGvmXDILQ51RiPnEDlv/HemS/TzMaAbBz+ic3Y+3Ib0dC0RuWJcs7J94DHY2IuX9FiYdRg2RZ0mcFd3Yx/SISxQGGRkWxqadwc4evKF9Tp7cwdbSVcGlPq4dzp8kMHbvCn7SRhKFNOW7oZg79BIF5vuMw4jdc1WkGCbwfCCrklkAO/VzcE0Kk65+7JW8zW94KiVJtbkL8NyoWMiD+ki54neiBp+5OzpneHv7MNnK3s0ITlCPrRNMeF1/CV2YOuBiBoDq1tUG8vjQ=
     on:
       repo: chutney-testing/chutney-kotlin-dsl
-      all_branches: true
+      branch: master
       tags: true
-      condition: PROJECT_VERSION = $TRAVIS_TAG
 
 notifications:
   webhooks:
