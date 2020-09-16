@@ -3,6 +3,7 @@ package com.chutneytesting.kotlin.dsl
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.File
+import java.util.regex.Pattern
 
 class ChutneyScenarioDslGenerator {
 
@@ -81,9 +82,9 @@ private fun mapDebugTask(implementation: ChutneyStepImpl): String {
 
 private fun mapSleepTask(implementation: ChutneyStepImpl): String {
     val inputs = implementation.inputs
-    val timeout = inputAsString(inputs, "queue-name")
+    val duration = inputAsString(inputs, "duration")
     val listOfArgs = listOf(
-        "timeout" to timeout
+        "duration" to duration
     )
     val args = mapArgs(listOfArgs)
     return """{
@@ -282,3 +283,14 @@ fun escapeKotlin(s: String): String {
     //.replace("'£", "'$")
 }
 
+val spelPattern = Pattern.compile("\\$\\{#(.*?)}")
+
+fun toKotlinSpelString(s: String): String {
+    val sb = StringBuffer()
+    val m = spelPattern.matcher(s)
+    while (m.find()) {
+        m.appendReplacement(sb, "\\$\\{\"${m.group(1)}\".spEL()}")
+    }
+    m.appendTail(sb)
+    return sb.toString()
+}

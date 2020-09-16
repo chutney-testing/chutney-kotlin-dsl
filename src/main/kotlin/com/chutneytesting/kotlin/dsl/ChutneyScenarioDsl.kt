@@ -115,7 +115,7 @@ class ChutneyStepBuilder(var description: String = "") {
         target: String,
         uri: String,
         headers: Map<String, Any> = mapOf(),
-        body: Map<String, Any> = mapOf(),
+        body: Any,
         timeout: String = "2 sec",
         outputs: Map<String, Any> = mapOf("body".toSpelPair()),
         strategy: Strategy? = null
@@ -133,7 +133,7 @@ class ChutneyStepBuilder(var description: String = "") {
         target: String,
         topic: String,
         headers: Map<String, Any> = mapOf(),
-        payload: Map<String, Any> = mapOf()
+        payload: Any
     ) {
         implementation = ChutneyStepImpl(
             type = "kafka-basic-publish",
@@ -149,7 +149,7 @@ class ChutneyStepBuilder(var description: String = "") {
         group: String,
         properties: Map<String, String> = mapOf("auto.offset.reset" to "earliest"),
         timeout: String = "60 sec",
-        selector: String,
+        selector: String = "",
         outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
@@ -171,7 +171,7 @@ class ChutneyStepBuilder(var description: String = "") {
         queueName: String,
         nbMessages: Int = 1,
         timeout: String = "60 sec",
-        selector: String,
+        selector: String = "",
         outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
@@ -205,14 +205,14 @@ class ChutneyStepBuilder(var description: String = "") {
         )
     }
 
-    fun JmsSenderTask(target: String, queueName: String, payload: String) {
+    fun JmsSenderTask(target: String, queueName: String, headers: Map<String, Any> = mapOf(), payload: String) {
         implementation = ChutneyStepImpl(
             type = "jms-sender",
             target = target,
             inputs = mapOf(
                 "destination" to queueName,
                 "body" to payload,
-                "headers" to mapOf("X--JMS-VERSION" to "1.0", "X--HEADER-1" to "42")
+                "headers" to headers
             ),
             outputs = mapOf()
         )
