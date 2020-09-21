@@ -1,5 +1,8 @@
 # Chutney Testing Kotlin DSL
 
+[![Build Status](https://travis-ci.org/chutney-testing/chutney-kotlin-dsl.svg?branch=master)](https://travis-ci.org/chutney-testing/chutney-kotlin-dsl)
+[![Download](https://api.bintray.com/packages/chutney-testing/maven/chutney-kotlin-dsl/images/download.svg) ](https://bintray.com/chutney-testing/maven/chutney-kotlin-dsl/_latestVersion)
+
 ## DO IT IN CODE {"NOT": "JSON"}
 
 This repository aims to add a kotlin flavor for writing chutney scenarios.
