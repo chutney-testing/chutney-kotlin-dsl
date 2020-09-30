@@ -28,18 +28,30 @@ class ChutneyScenarioBuilder(val id: Int? = null, val title: String = "") {
         givens.add(ChutneyStepBuilder(description).apply(block).build())
     }
 
+    fun Given(description: String = "", strategy: Strategy? = null, block: ChutneyStepBuilder.() -> Unit) {
+        givens.add(ChutneyStepBuilder(description, strategy).apply(block).build())
+    }
+
     fun When(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
         `when` = ChutneyStepBuilder(description).apply(block).build()
+    }
+
+    fun When(description: String = "", strategy: Strategy? = null, block: ChutneyStepBuilder.() -> Unit) {
+        `when` = ChutneyStepBuilder(description, strategy).apply(block).build()
     }
 
     fun Then(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
         thens.add(ChutneyStepBuilder(description).apply(block).build())
     }
 
-    fun And(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
+    fun Then(description: String = "", strategy: Strategy?, block: ChutneyStepBuilder.() -> Unit) {
+        thens.add(ChutneyStepBuilder(description, strategy).apply(block).build())
+    }
+
+    fun And(description: String = "", strategy: Strategy? = null, block: ChutneyStepBuilder.() -> Unit) {
         when {
-            `when` != null -> thens.add(ChutneyStepBuilder(description).apply(block).build())
-            else -> givens.add(ChutneyStepBuilder(description).apply(block).build())
+            `when` != null -> thens.add(ChutneyStepBuilder(description, strategy).apply(block).build())
+            else -> givens.add(ChutneyStepBuilder(description, strategy).apply(block).build())
         }
     }
 
@@ -47,23 +59,23 @@ class ChutneyScenarioBuilder(val id: Int? = null, val title: String = "") {
 
 }
 
-open class Strategy(val type: String, val parameters: Map<String, String>)
-class RetryTimeOutStrategy(timeout: String, retryDelay: String) :
+open class Strategy(val type: String, val parameters: Map<String, String> = emptyMap())
+open class RetryTimeOutStrategy(timeout: String, retryDelay: String) :
     Strategy(type = "retry-with-timeout", parameters = mapOf("timeOut" to timeout, "retryDelay" to retryDelay))
-
+open class SoftAssertStrategy() :
+    Strategy(type = "soft-assert")
 @ChutneyScenarioDsl
-class ChutneyStepBuilder(var description: String = "") {
+class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? = null) {
 
     var subSteps = mutableListOf<ChutneyStep>()
     var implementation: ChutneyStepImpl? = null
-    var strategy: Strategy? = null
 
     fun Implementation(block: ChutneyStepImplBuilder.() -> Unit) {
         implementation = ChutneyStepImplBuilder().apply(block).build()
     }
 
-    fun Step(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
-        subSteps.add(ChutneyStepBuilder(description).apply(block).build())
+    fun Step(description: String = "", strategy: Strategy? = null, block: ChutneyStepBuilder.() -> Unit) {
+        subSteps.add(ChutneyStepBuilder(description, strategy).apply(block).build())
     }
 
     fun ContextPutTask(entries: Map<String, Any>, outputs: Map<String, Any> = mapOf()) {
@@ -122,6 +134,24 @@ class ChutneyStepBuilder(var description: String = "") {
     ) {
         implementation = ChutneyStepImpl(
             type = "http-post",
+            target = target,
+            inputs = mapOf("uri" to uri, "headers" to headers, "body" to body, "timeout" to timeout),
+            outputs = outputs
+        )
+        this.strategy = strategy
+    }
+
+    fun HttpPutTask(
+        target: String,
+        uri: String,
+        headers: Map<String, Any> = mapOf(),
+        body: Map<String, Any> = mapOf(),
+        timeout: String = "2 sec",
+        outputs: Map<String, Any> = mapOf("body".toSpelPair()),
+        strategy: Strategy? = null
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "http-put",
             target = target,
             inputs = mapOf("uri" to uri, "headers" to headers, "body" to body, "timeout" to timeout),
             outputs = outputs
@@ -254,11 +284,11 @@ class ChutneyStepBuilder(var description: String = "") {
         )
     }
 
-    fun AssertTrueTask(asserts: List<String>) {
+    fun AssertTrueTask(asserts: List<Map<String, Any>>) {
         implementation = ChutneyStepImpl(
             type = "assert",
             target = null,
-            inputs = mapOf("asserts" to asserts.map { mapOf("assert-true" to it) }.toList()),
+            inputs = mapOf("asserts" to asserts),
             outputs = mapOf()
         )
     }
@@ -294,7 +324,7 @@ class ChutneyStepBuilder(var description: String = "") {
         implementation = ChutneyStepImpl(
             type = "sleep",
             target = null,
-            inputs = mapOf("duration" to String),
+            inputs = mapOf("duration" to duration),
             outputs = mapOf()
         )
     }
@@ -344,7 +374,7 @@ class ChutneyStep(
     val description: String,
     val implementation: ChutneyStepImpl? = null,
     val strategy: Strategy? = null,
-    val subSteps: List<ChutneyStep>? = null
+    val subSteps: List<ChutneyStep> = ArrayList()
 )
 
 class ChutneyStepImpl(
