@@ -25,36 +25,61 @@ class ChutneyScenarioDslGenerator {
 
     private fun mapGivens(chutneyScenario: ChutneyScenario): String {
         return chutneyScenario.givens.mapIndexed { index: Int, step: ChutneyStep ->
-            gwta(index, "Given") + "(\"${step.description}\") ${step.toDsl()}"
+            if (step.strategy != null) {
+                gwta(index, "Given") + "(\"${step.description}\", ${step.strategy?.toDsl()}) ${step.toDsl()}"
+            } else {
+                gwta(index, "Given") + "(\"${step.description}\") ${step.toDsl()}"
+            }
         }.joinToString(separator = "\n")
     }
 
-    private fun mapWhen(chutneyScenario: ChutneyScenario) =
-        """When("${chutneyScenario.`when`?.description}") ${chutneyScenario.`when`?.toDsl()}"""
+    private fun mapWhen(chutneyScenario: ChutneyScenario): String {
+        if (chutneyScenario.`when`?.strategy != null) {
+            return """When("${chutneyScenario.`when`?.description}", ${chutneyScenario.`when`?.strategy?.toDsl()}) ${chutneyScenario.`when`?.toDsl()}"""
+        } else {
+            return """When("${chutneyScenario.`when`?.description}") ${chutneyScenario.`when`?.toDsl()}"""
+        }
+    }
+
 
     private fun mapThens(chutneyScenario: ChutneyScenario): String {
         return chutneyScenario.thens.mapIndexed { index: Int, step: ChutneyStep ->
-            gwta(index, "Then") + "(\"${step.description}\") ${step.toDsl()}"
+            if (step.strategy != null) {
+                gwta(index, "Then") + "(\"${step.description}\", ${step.strategy?.toDsl()}) ${step.toDsl()}"
+            } else {
+                gwta(index, "Then") + "(\"${step.description}\") ${step.toDsl()}"
+            }
         }.joinToString(separator = "\n")
     }
 
     private fun gwta(index: Int, gt: String) = if (index == 0) gt else "And"
 }
 
+private fun Strategy.toDsl(): String? {
+    return when (this.type) {
+        "retry-with-timeout" -> mapRetryTimeoutTask(this)
+        else -> return null
+    }
+}
+
 private fun ChutneyStep.toDsl(): String {
-    if (this.subSteps.isNullOrEmpty()) {
+    if (this.subSteps == null || this.subSteps.isEmpty()) {
         val implementation = this.implementation ?: return mapTODO()
         return when (implementation.type) {
             "context-put" -> mapContexPutTask(implementation)
             "http-get" -> mapHttpGetTask(implementation)
             "http-post" -> mapHttpPostTask(implementation)
+            "http-put" -> mapHttpPutTask(implementation)
             "amqp-clean-queues" -> mapAmqpCleanQueuesTask(implementation)
             "amqp-basic-consume" -> mapAmqpBasicConsumeTask(implementation)
             "json-assert" -> mapJsonAssertTask(implementation)
+            "json-compare" -> mapJsonCompareTask(implementation)
             "string-assert" -> mapStringAssertTask(implementation)
             "sql" -> mapSqlTask(implementation)
             "sleep" -> mapSleepTask(implementation)
+            "assert" -> mapAssertsTask(implementation)
             "debug" -> mapDebugTask(implementation)
+            //"jms-sender" -> mapJmsSenderTask(implementation)
             else -> mapTODO()
         }
     } else {
@@ -72,6 +97,13 @@ private fun mapTODO(): String {
     return """{
        TODO("Not yet implemented")
     }"""
+}
+
+private fun mapRetryTimeoutTask(strategy: Strategy): String {
+    val parameter = strategy.parameters
+    val timeout = inputAsString(parameter, "timeOut")
+    val retryDelay = inputAsString(parameter, "retryDelay")
+    return "RetryTimeOutStrategy($timeout, $retryDelay)"
 }
 
 private fun mapDebugTask(implementation: ChutneyStepImpl): String {
@@ -92,11 +124,24 @@ private fun mapSleepTask(implementation: ChutneyStepImpl): String {
     }"""
 }
 
+fun mapAssertsTask(implementation: ChutneyStepImpl): String {
+    val input = implementation.inputs
+    val asserts = inputAsMapList(input, "asserts")
+    val listOfArgs = listOf(
+        "asserts" to asserts
+    )
+    val args = mapArgs(listOfArgs)
+    return """{
+        AssertTrueTask($args)
+    }"""
+}
+
+
 fun mapAmqpBasicConsumeTask(implementation: ChutneyStepImpl): String {
     val inputs = implementation.inputs
     val selector = inputAsString(inputs, "selector")
     val queueName = inputAsString(inputs, "queue-name")
-    val timeout = inputAsString(inputs, "queue-name")
+    val timeout = inputAsString(inputs, "timeout")
     val nbMessages = inputs.get("nb-messages") as Int? ?: 1
     val outputs = outputsAsMap(implementation)
     val target = target(implementation)
@@ -125,11 +170,28 @@ fun mapJsonAssertTask(implementation: ChutneyStepImpl): String {
     }"""
 }
 
+fun mapJsonCompareTask(implementation: ChutneyStepImpl): String {
+    val inputs = implementation.inputs
+    val document1 = inputAsString(inputs, "document1")
+    val document2 = inputAsString(inputs, "document2")
+    val comparingPaths = inputAsMap(inputs, "comparingPaths")
+    val listOfArgs = listOf("document1" to document1, "document2" to document2, "comparingPaths" to comparingPaths)
+    val args = mapArgs(listOfArgs)
+    return """{
+        JsonCompareTask($args)
+    }"""
+}
+
 fun mapSqlTask(implementation: ChutneyStepImpl): String {
     val inputs = implementation.inputs
     val statements = inputAsList(inputs, "statements")
     val outputs = outputsAsMap(implementation)
-    val listOfArgs = listOf("statements" to statements, "outputs" to outputs)
+    val target = target(implementation)
+    val listOfArgs = listOf(
+        "statements" to statements,
+        "outputs" to outputs,
+        "target" to target
+    )
     val args = mapArgs(listOfArgs)
     return """{
         SqlTask($args)
@@ -158,6 +220,24 @@ fun mapAmqpCleanQueuesTask(implementation: ChutneyStepImpl): String {
     }"""
 }
 
+fun mapJmsSenderTask(implementation: ChutneyStepImpl): String {
+    val inputs = implementation.inputs
+    val target = target(implementation)
+    val headers = inputAsString(inputs, "dateDemande")
+    val queueName = inputAsString(inputs, "destination")
+    val payload = inputAsString(inputs, "body")
+    val listOfArgs = listOf(
+        "target" to target,
+        "headers" to headers,
+        "queueName" to queueName,
+        "payload" to payload
+    )
+    val args = mapArgs(listOfArgs)
+    return """{
+        JmsSenderTask($args)
+    }"""
+}
+
 fun mapHttpGetTask(implementation: ChutneyStepImpl): String {
     val inputs = implementation.inputs
     val headers = inputAsMap(inputs, "headers")
@@ -176,6 +256,27 @@ fun mapHttpGetTask(implementation: ChutneyStepImpl): String {
     val args = mapArgs(listOfArgs)
     return """{
         HttpGetTask($args)
+    }"""
+}
+
+fun mapHttpPutTask(implementation: ChutneyStepImpl): String {
+    val inputs = implementation.inputs
+    val target = target(implementation)
+    val headers = inputAsMap(inputs, "headers")
+    val body = inputAsMap(inputs, "body")
+    val uri = uri(implementation)
+    val timeout = inputAsString(inputs, "timeout")
+    val listOfArgs = listOf(
+        "target" to target,
+        "uri" to uri,
+        "headers" to headers,
+        "timeout" to timeout,
+        "body" to body,
+        "strategy" to null
+    )
+    val args = mapArgs(listOfArgs)
+    return """{
+        HttpPutTask($args)
     }"""
 }
 
@@ -202,6 +303,9 @@ private fun mapArgs(listOfArgs: List<Pair<String, Any?>>): String {
         .filterNot { it.second == null || it.second == "".wrapWithQuotes() || it.second == "mapOf()" || it.second == "listOf()" }
         .joinToString(", ") { it.first + " = " + it.second }
 }
+
+private fun inputAsMapList(inputs: Map<String, Any>, key: String) =
+    listOfMapConstructor(inputs.get(key) as List<Map<String, Any>>?)
 
 private fun inputAsList(inputs: Map<String, Any>, key: String) =
     listOfConstructor(inputs.get(key) as List<String>?)
@@ -251,9 +355,22 @@ private fun listOfConstructor(
         return "listOf()"
     }
     return "listOf(${
-    list.joinToString(",\n") {
-        it.split("\n").map { (escapeKotlin(it)).wrapWithQuotes() }.joinToString(" +\n")
+        list.joinToString(",\n") {
+            it.split("\n").map { (escapeKotlin(it)).wrapWithQuotes() }.joinToString(" +\n")
+        }
+    })"
+}
+
+private fun listOfMapConstructor(
+    list: List<Map<String, Any>>?
+): String {
+    if (list == null) {
+        return "listOf()"
     }
+    return "listOf(${
+        list.joinToString(",\n") {
+            mapOfConstructor(it)
+        }
     })"
 }
 
@@ -264,15 +381,15 @@ private fun mapOfConstructor(
         return "mapOf()"
     }
     return "mapOf(${
-    entries.map {
-        "\"${it.key}\" to \"${
-        escapeKotlin(
-            if (it.value is Map<*, *>) {
-                jacksonObjectMapper().writeValueAsString(it.value as Map<*, *>)
-            } else it.value.toString() //TODO check when is Int
-        )
-        }\""
-    }.joinToString(",\n")
+        entries.map {
+            "\"${it.key}\" to \"${
+                escapeKotlin(
+                    if (it.value is Map<*, *>) {
+                        escapeKotlin(jacksonObjectMapper().writeValueAsString(it.value as Map<*, *>))
+                    } else it.value.toString() //TODO check when is Int
+                )
+            }\""
+        }.joinToString(",\n")
     })"
 }
 
