@@ -62,8 +62,10 @@ class ChutneyScenarioBuilder(val id: Int? = null, val title: String = "") {
 open class Strategy(val type: String, val parameters: Map<String, String> = emptyMap())
 open class RetryTimeOutStrategy(timeout: String, retryDelay: String) :
     Strategy(type = "retry-with-timeout", parameters = mapOf("timeOut" to timeout, "retryDelay" to retryDelay))
+
 open class SoftAssertStrategy() :
     Strategy(type = "soft-assert")
+
 @ChutneyScenarioDsl
 class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? = null) {
 
@@ -325,6 +327,168 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
             type = "sleep",
             target = null,
             inputs = mapOf("duration" to duration),
+            outputs = mapOf()
+        )
+    }
+
+    fun MicrometerGaugeTask(
+        name: String,
+        description: String,
+        unit: String,
+        strongReference: Boolean,
+        tags: List<String>,
+        gaugeObject: Object, //Number or Object or List or Map
+        gaugeFunction: String,
+        registry: String
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "micrometer-gauge",
+            target = null,
+            inputs = mapOf(
+                "name" to name,
+                "description" to description,
+                "unit" to unit,
+                "strongReference" to strongReference,
+                "tags" to tags,
+                "gaugeObject" to gaugeObject,
+                "gaugeFunction" to gaugeFunction,
+                "registry" to registry
+            ),
+            outputs = mapOf()
+        )
+    }
+
+    fun MicrometerCounterTask(
+        name: String,
+        description: String,
+        unit: String,
+        tags: List<String>,
+        counter: String,
+        increment: String,
+        registry: String
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "micrometer-counter",
+            target = null,
+            inputs = mapOf(
+                "name" to name,
+                "description" to description,
+                "unit" to unit,
+                "tags" to tags,
+                "counter" to counter,
+                "increment" to increment,
+                "registry" to registry
+            ),
+            outputs = mapOf()
+        )
+    }
+
+    fun MicrometerSummaryTask(
+        name: String,
+        description: String,
+        unit: String,
+        tags: List<String>,
+        bufferLength: String,
+        expiry: String,
+        maxValue: String,
+        minValue: String,
+        percentilePrecision: String,
+        publishPercentilesHistogram: Boolean,
+        percentiles: String,
+        scale: String,
+        sla: String,
+        distributionSummary: String,
+        registry: String,
+        record: String
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "micrometer-summary",
+            target = null,
+            inputs = mapOf(
+                "name" to name,
+                "description" to description,
+                "unit" to unit,
+                "tags" to tags,
+                "bufferLength" to bufferLength,
+                "expiry" to expiry,
+                "maxValue" to maxValue,
+                "minValue" to minValue,
+                "percentilePrecision" to percentilePrecision,
+                "publishPercentilesHistogram" to publishPercentilesHistogram,
+                "percentiles" to percentiles,
+                "scale" to scale,
+                "sla" to sla,
+                "distributionSummary" to distributionSummary,
+                "registry" to registry,
+                "record" to record
+            ),
+            outputs = mapOf()
+        )
+    }
+
+    fun MicrometerTimerTask(
+        name: String,
+        description: String,
+        tags: List<String>,
+        bufferLength: String,
+        expiry: String,
+        maxValue: String,
+        minValue: String,
+        percentilePrecision: String,
+        publishPercentilesHistogram: Boolean,
+        percentiles: String,
+        sla: String,
+        timer: String,
+        registry: String,
+        timeunit: String,
+        record: String
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "micrometer-timer",
+            target = null,
+            inputs = mapOf(
+                "name" to name,
+                "description" to description,
+                "tags" to tags,
+                "bufferLength" to bufferLength,
+                "expiry" to expiry,
+                "maxValue" to maxValue,
+                "minValue" to minValue,
+                "percentilePrecision" to percentilePrecision,
+                "publishPercentilesHistogram" to publishPercentilesHistogram,
+                "percentiles" to percentiles,
+                "sla" to sla,
+                "timer" to timer,
+                "registry" to registry,
+                "timeunit" to timeunit,
+                "record" to record
+            ),
+            outputs = mapOf()
+        )
+    }
+
+    fun MicrometerTimerStartTask(
+        registry: String
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "micrometer-timer-start",
+            target = null,
+            inputs = mapOf(
+                "registry" to registry,
+            ),
+            outputs = mapOf()
+        )
+    }
+
+    fun MicrometerTimerStopTask(
+        registry: String
+    ) {
+        implementation = ChutneyStepImpl(
+            type = "micrometer-timer-stop",
+            target = null,
+            inputs = mapOf(
+                "registry" to registry,
+            ),
             outputs = mapOf()
         )
     }
