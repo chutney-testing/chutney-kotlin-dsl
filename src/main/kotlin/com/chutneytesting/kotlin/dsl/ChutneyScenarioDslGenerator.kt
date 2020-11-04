@@ -295,7 +295,7 @@ private fun mapContexPutTask(implementation: ChutneyStepImpl): String {
 private fun outputsAsMap(implementation: ChutneyStepImpl) =
     mapOfConstructor(implementation.outputs)
 
-private fun inputAsString(inputs: Map<String, Any>, key: String) =
+private fun inputAsString(inputs: Map<String, Any?>, key: String) =
     escapeKotlin((inputs.get(key) as String? ?: "")).wrapWithQuotes()
 
 private fun mapArgs(listOfArgs: List<Pair<String, Any?>>): String {
@@ -304,13 +304,13 @@ private fun mapArgs(listOfArgs: List<Pair<String, Any?>>): String {
         .joinToString(", ") { it.first + " = " + it.second }
 }
 
-private fun inputAsMapList(inputs: Map<String, Any>, key: String) =
+private fun inputAsMapList(inputs: Map<String, Any?>, key: String) =
     listOfMapConstructor(inputs.get(key) as List<Map<String, Any>>?)
 
-private fun inputAsList(inputs: Map<String, Any>, key: String) =
+private fun inputAsList(inputs: Map<String, Any?>, key: String) =
     listOfConstructor(inputs.get(key) as List<String>?)
 
-private fun inputAsMap(inputs: Map<String, Any>, key: String) =
+private fun inputAsMap(inputs: Map<String, Any?>, key: String) =
     mapOfConstructor(inputs.get(key) as Map<String, Any>?)
 
 fun mapHttpPostTask(implementation: ChutneyStepImpl): String {
