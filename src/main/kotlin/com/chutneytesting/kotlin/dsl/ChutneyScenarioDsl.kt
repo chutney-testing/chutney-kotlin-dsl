@@ -333,14 +333,17 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
 
     fun MicrometerGaugeTask(
         name: String,
-        description: String,
-        unit: String,
-        strongReference: Boolean,
-        tags: List<String>,
-        gaugeObject: Object, //Number or Object or List or Map
-        gaugeFunction: String,
-        registry: String
+        description: String? = null,
+        unit: String? = null,
+        strongReference: Boolean = false,
+        tags: List<String> = emptyList(),
+        gaugeObject: Object? = null, //Number or Object or List or Map
+        gaugeFunction: String? = null,
+        registry: String? = null,
+        outputs: Map<String, Any> = mapOf()
     ) {
+        val inputs = HashMap<String, Any?>()
+        inputs.putAll(mapOf( "name" to null))
         implementation = ChutneyStepImpl(
             type = "micrometer-gauge",
             target = null,
@@ -354,18 +357,19 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
                 "gaugeFunction" to gaugeFunction,
                 "registry" to registry
             ),
-            outputs = mapOf()
+            outputs = outputs
         )
     }
 
     fun MicrometerCounterTask(
         name: String,
-        description: String,
-        unit: String,
-        tags: List<String>,
-        counter: String,
-        increment: String,
-        registry: String
+        description: String? = null,
+        unit: String? = null,
+        tags: List<String> = emptyList(),
+        counter: String ? = null,
+        increment: String? = null,
+        registry: String? = null,
+        outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
             type = "micrometer-counter",
@@ -379,27 +383,28 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
                 "increment" to increment,
                 "registry" to registry
             ),
-            outputs = mapOf()
+            outputs = outputs
         )
     }
 
     fun MicrometerSummaryTask(
         name: String,
-        description: String,
-        unit: String,
-        tags: List<String>,
-        bufferLength: String,
-        expiry: String,
-        maxValue: String,
-        minValue: String,
-        percentilePrecision: String,
-        publishPercentilesHistogram: Boolean,
-        percentiles: String,
-        scale: String,
-        sla: String,
-        distributionSummary: String,
-        registry: String,
-        record: String
+        description: String? = null,
+        unit: String? = null,
+        tags: List<String> = emptyList(),
+        bufferLength: String? = null,
+        expiry: String? = null,
+        maxValue: String? = null,
+        minValue: String? = null,
+        percentilePrecision: String? = null,
+        publishPercentilesHistogram: Boolean = false,
+        percentiles: String? = null,
+        scale: String? = null,
+        sla: String? = null,
+        distributionSummary: String? = null,
+        registry: String? = null,
+        record: String? = null,
+        outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
             type = "micrometer-summary",
@@ -422,26 +427,27 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
                 "registry" to registry,
                 "record" to record
             ),
-            outputs = mapOf()
+            outputs = outputs
         )
     }
 
     fun MicrometerTimerTask(
         name: String,
-        description: String,
-        tags: List<String>,
-        bufferLength: String,
-        expiry: String,
-        maxValue: String,
-        minValue: String,
-        percentilePrecision: String,
-        publishPercentilesHistogram: Boolean,
-        percentiles: String,
-        sla: String,
-        timer: String,
-        registry: String,
-        timeunit: String,
-        record: String
+        description: String? = null,
+        tags: List<String> = emptyList(),
+        bufferLength: String? = null,
+        expiry: String? = null,
+        maxValue: String? = null,
+        minValue: String? = null,
+        percentilePrecision: String? = null,
+        publishPercentilesHistogram: Boolean = false,
+        percentiles: String? = null,
+        sla: String? = null,
+        timer: String? = null,
+        registry: String? = null,
+        timeunit: String? = null,
+        record: String? = null,
+        outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
             type = "micrometer-timer",
@@ -463,12 +469,13 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
                 "timeunit" to timeunit,
                 "record" to record
             ),
-            outputs = mapOf()
+            outputs = outputs
         )
     }
 
     fun MicrometerTimerStartTask(
-        registry: String
+        registry: String? = null,
+        outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
             type = "micrometer-timer-start",
@@ -476,12 +483,13 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
             inputs = mapOf(
                 "registry" to registry,
             ),
-            outputs = mapOf()
+            outputs = outputs
         )
     }
 
     fun MicrometerTimerStopTask(
-        registry: String
+        registry: String? = null,
+        outputs: Map<String, Any> = mapOf()
     ) {
         implementation = ChutneyStepImpl(
             type = "micrometer-timer-stop",
@@ -489,12 +497,11 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
             inputs = mapOf(
                 "registry" to registry,
             ),
-            outputs = mapOf()
+            outputs = outputs
         )
     }
 
     fun build(): ChutneyStep = ChutneyStep(description, implementation, strategy, subSteps)
-
 }
 
 @ChutneyScenarioDsl
@@ -544,7 +551,7 @@ class ChutneyStep(
 class ChutneyStepImpl(
     val type: String,
     val target: String?,
-    val inputs: Map<String, Any>,
+    val inputs: Map<String, Any?>,
     val outputs: Map<String, Any>?
 )
 
