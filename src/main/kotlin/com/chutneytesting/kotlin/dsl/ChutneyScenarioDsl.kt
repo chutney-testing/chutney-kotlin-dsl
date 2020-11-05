@@ -337,7 +337,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         unit: String? = null,
         strongReference: Boolean = false,
         tags: List<String> = emptyList(),
-        gaugeObject: Object? = null, //Number or Object or List or Map
+        gaugeObject: Any? = null, //Number or Object or List or Map
         gaugeFunction: String? = null,
         registry: String? = null,
         outputs: Map<String, Any> = mapOf()
