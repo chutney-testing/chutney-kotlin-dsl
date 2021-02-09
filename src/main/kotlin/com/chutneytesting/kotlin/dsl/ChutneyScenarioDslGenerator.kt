@@ -26,7 +26,7 @@ class ChutneyScenarioDslGenerator {
     private fun mapGivens(chutneyScenario: ChutneyScenario): String {
         return chutneyScenario.givens.mapIndexed { index: Int, step: ChutneyStep ->
             if (step.strategy != null) {
-                gwta(index, "Given") + "(\"${step.description}\", ${step.strategy?.toDsl()}) ${step.toDsl()}"
+                gwta(index, "Given") + "(\"${step.description}\", ${step.strategy.toDsl()}) ${step.toDsl()}"
             } else {
                 gwta(index, "Given") + "(\"${step.description}\") ${step.toDsl()}"
             }
@@ -35,7 +35,7 @@ class ChutneyScenarioDslGenerator {
 
     private fun mapWhen(chutneyScenario: ChutneyScenario): String {
         if (chutneyScenario.`when`?.strategy != null) {
-            return """When("${chutneyScenario.`when`?.description}", ${chutneyScenario.`when`?.strategy?.toDsl()}) ${chutneyScenario.`when`?.toDsl()}"""
+            return """When("${chutneyScenario.`when`.description}", ${chutneyScenario.`when`.strategy.toDsl()}) ${chutneyScenario.`when`.toDsl()}"""
         } else {
             return """When("${chutneyScenario.`when`?.description}") ${chutneyScenario.`when`?.toDsl()}"""
         }
@@ -45,7 +45,7 @@ class ChutneyScenarioDslGenerator {
     private fun mapThens(chutneyScenario: ChutneyScenario): String {
         return chutneyScenario.thens.mapIndexed { index: Int, step: ChutneyStep ->
             if (step.strategy != null) {
-                gwta(index, "Then") + "(\"${step.description}\", ${step.strategy?.toDsl()}) ${step.toDsl()}"
+                gwta(index, "Then") + "(\"${step.description}\", ${step.strategy.toDsl()}) ${step.toDsl()}"
             } else {
                 gwta(index, "Then") + "(\"${step.description}\") ${step.toDsl()}"
             }

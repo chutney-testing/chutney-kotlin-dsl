@@ -19,7 +19,7 @@ class ChutneyScenarioDslGeneratorTest {
             >        ContextPutTask(entries = mapOf("uri" to "api/people/1"))
             >    }
             >    When("I send GET HTTP request") {
-            >        HttpGetTask(target = "swapi.dev", uri = "\${'$'}{#uri}")
+            >        HttpGetTask(target = "swapi.dev", uri = "\${'$'}{#uri}", timeout = "2 sec")
             >    }
             >    Then("I receive valid HTTP response") {
             >        JsonAssertTask(document = "\${'$'}{#body}", expected = mapOf("${'$'}.name" to "Luke Skywalker"))

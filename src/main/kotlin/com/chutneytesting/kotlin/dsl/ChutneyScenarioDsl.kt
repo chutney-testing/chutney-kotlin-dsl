@@ -2,12 +2,19 @@ package com.chutneytesting.kotlin.dsl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.*
 import com.fasterxml.jackson.core.util.DefaultIndenter
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import com.fasterxml.jackson.core.util.Separators
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.ser.std.MapSerializer
+
+import com.fasterxml.jackson.databind.type.MapType
+
+import com.fasterxml.jackson.databind.ser.BeanSerializerModifier
+
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 
 
 @DslMarker
@@ -55,6 +62,13 @@ class ChutneyScenarioBuilder(val id: Int? = null, val title: String = "") {
         }
     }
 
+    fun And(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
+        when {
+            `when` != null -> thens.add(ChutneyStepBuilder(description).apply(block).build())
+            else -> givens.add(ChutneyStepBuilder(description).apply(block).build())
+        }
+    }
+
     fun build(): ChutneyScenario = ChutneyScenario(id, title, description, givens, `when`, thens)
 
 }
@@ -72,11 +86,19 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
     var subSteps = mutableListOf<ChutneyStep>()
     var implementation: ChutneyStepImpl? = null
 
+    fun Strategy(s: Strategy) {
+        strategy = s
+    }
+
     fun Implementation(block: ChutneyStepImplBuilder.() -> Unit) {
         implementation = ChutneyStepImplBuilder().apply(block).build()
     }
 
     fun Step(description: String = "", strategy: Strategy? = null, block: ChutneyStepBuilder.() -> Unit) {
+        subSteps.add(ChutneyStepBuilder(description, strategy).apply(block).build())
+    }
+
+    fun Step(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
         subSteps.add(ChutneyStepBuilder(description, strategy).apply(block).build())
     }
 
@@ -100,7 +122,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "http-get",
             target = target,
-            inputs = mapOf("uri" to uri, "headers" to headers, "timeout" to timeout),
+            inputs = listOfNotNull("uri" to uri,  ("headers" to headers).takeIf { headers.isNotEmpty() }, "timeout" to timeout).toMap(),
             outputs = outputs
         )
         this.strategy = strategy
@@ -118,7 +140,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "http-delete",
             target = target,
-            inputs = mapOf("uri" to uri, "headers" to headers, "timeout" to timeout),
+            inputs = listOfNotNull("uri" to uri, ("headers" to headers).takeIf { headers.isNotEmpty() }, "timeout" to timeout).toMap(),
             outputs = outputs
         )
         this.strategy = strategy
@@ -137,7 +159,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "http-post",
             target = target,
-            inputs = mapOf("uri" to uri, "headers" to headers, "body" to body, "timeout" to timeout),
+            inputs = listOfNotNull("uri" to uri,  ("headers" to headers).takeIf { headers.isNotEmpty() }, "body" to body, "timeout" to timeout).toMap(),
             outputs = outputs
         )
         this.strategy = strategy
@@ -155,7 +177,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "http-put",
             target = target,
-            inputs = mapOf("uri" to uri, "headers" to headers, "body" to body, "timeout" to timeout),
+            inputs = listOfNotNull("uri" to uri,  ("headers" to headers).takeIf { headers.isNotEmpty() }, "body" to body, "timeout" to timeout).toMap(),
             outputs = outputs
         )
         this.strategy = strategy
@@ -170,7 +192,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "kafka-basic-publish",
             target = target,
-            inputs = mapOf("topic" to topic, "headers" to headers, "payload" to payload),
+            inputs = listOfNotNull("topic" to topic, ("headers" to headers).takeIf { headers.isNotEmpty() }, "payload" to payload).toMap(),
             outputs = mapOf()
         )
     }
@@ -241,11 +263,11 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "jms-sender",
             target = target,
-            inputs = mapOf(
+            inputs = listOfNotNull(
                 "destination" to queueName,
                 "body" to payload,
-                "headers" to headers
-            ),
+                ("headers" to headers).takeIf { headers.isNotEmpty() },
+            ).toMap(),
             outputs = mapOf()
         )
     }
@@ -534,34 +556,32 @@ object Mapper {
 
     val mapper = ObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+        .registerModule(KotlinModule())
         .setDefaultPrettyPrinter(pp)
         .enable(SerializationFeature.INDENT_OUTPUT)
-
 }
 
 class ChutneyStep(
     val description: String,
-    val implementation: ChutneyStepImpl? = null,
-    val strategy: Strategy? = null,
-    val subSteps: List<ChutneyStep> = ArrayList()
+    @JsonInclude(NON_NULL) val implementation: ChutneyStepImpl? = null,
+    @JsonInclude(NON_NULL) val strategy: Strategy? = null,
+    @JsonInclude(NON_EMPTY) val subSteps: List<ChutneyStep> = emptyList()
 )
 
 class ChutneyStepImpl(
     val type: String,
-    val target: String?,
-    val inputs: Map<String, Any?>,
-    val outputs: Map<String, Any>?
+    @JsonInclude(NON_EMPTY) val target: String?,
+    @JsonInclude(NON_EMPTY) val inputs: Map<String, Any?>,
+    @JsonInclude(NON_EMPTY) val outputs: Map<String, Any>?
 )
 
 class ChutneyScenario(
     @JsonIgnore val id: Int?,
     val title: String = "",
     val description: String = "",
-    val givens: List<ChutneyStep> = mutableListOf<ChutneyStep>(),
+    val givens: List<ChutneyStep> = mutableListOf(),
     val `when`: ChutneyStep? = null,
-    val thens: List<ChutneyStep> = mutableListOf<ChutneyStep>()
+    val thens: List<ChutneyStep> = mutableListOf()
 ) {
 
     override fun toString(): String {

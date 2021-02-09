@@ -1,6 +1,7 @@
 package com.chutneytesting.kotlin.dsl
 
 import com.gregwoodfill.assert.`should equal json`
+import com.gregwoodfill.assert.`should strictly equal json`
 import org.junit.Test
 
 class ChutneyScenarioDslTest {
@@ -44,7 +45,7 @@ class ChutneyScenarioDslTest {
             }
         }
 
-        "$`swapi GET people record`" `should equal json` "/get-people-with-substeps.chutney.json".asResource()
+        "$`swapi GET people record`" `should strictly equal json` "/get-people-with-substeps.chutney.json".asResource()
 
     }
 
@@ -63,7 +64,29 @@ class ChutneyScenarioDslTest {
             }
         }
 
-        "$`swapi GET people record`" `should equal json` "/get-people.chutney.json".asResource()
+        "$`swapi GET people record`" `should strictly equal json` "/get-people.chutney.json".asResource()
+
+    }
+
+    @Test
+    fun `abe to create chutney scenario using kotlin dsl with functions and multiple assertions`() {
+
+        fun declareUri(): ChutneyStepBuilder.() -> Unit = { ContextPutTask(entries = mapOf("uri" to "api/people/1")) }
+
+        val `swapi GET people record` = Scenario(title = "swapi GET people record") {
+            Given("I set get people service api endpoint", declareUri())
+            When("I send GET HTTP request") {
+                HttpGetTask(target = "swapi.dev", uri = "uri".spEL())
+            }
+            Then("I receive valid HTTP response") {
+                JsonAssertTask(
+                    document = "body".spEL(),
+                    expected = mapOf("$.name" to "Luke Skywalker", "$.species" to emptyArray<String>())
+                )
+            }
+        }
+
+        "$`swapi GET people record`" `should strictly equal json` "/get-people-multiple-assertions.chutney.json".asResource()
 
     }
 
@@ -84,7 +107,7 @@ class ChutneyScenarioDslTest {
             }
         }
 
-        "$`swapi GET people record`" `should equal json` "/get-people.chutney.json".asResource()
+        "$`swapi GET people record`" `should strictly equal json` "/get-people.chutney.json".asResource()
 
     }
 
