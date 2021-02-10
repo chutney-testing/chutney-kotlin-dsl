@@ -5,18 +5,34 @@ import java.time.format.DateTimeFormatter
 plugins {
     `maven-publish`
     kotlin("jvm") version "1.4.0"
+    id("com.jfrog.bintray") version "1.8.5"
     id("org.ajoberstar.reckon") version "0.12.0"
 }
+
+val group = "com.chutneytesting"
+val timestamp: String = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+val gitHubUrl = "https://github.com/chutney-testing/${project.name}"
+val publicationName = "default";
 
 reckon {
     scopeFromProp()
     snapshotFromProp()
 }
 
-group = "com.chutneytesting"
-
-val timestamp: String = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-val gitHubUrl = "https://github.com/chutney-testing/${project.name}"
+bintray {
+    user = System.getenv("BINTRAY_SERVER_USERNAME")
+    key = System.getenv("BINTRAY_SERVER_PASSWORD")
+    publish = true
+    setPublications(publicationName)
+    pkg(delegateClosureOf<com.jfrog.bintray.gradle.BintrayExtension.PackageConfig> {
+        repo = "maven"
+        name = project.name
+        userOrg = "chutney-testing"
+        vcsUrl = gitHubUrl
+        setLicenses("Apache-2.0")
+        desc = description
+    })
+}
 
 repositories {
     mavenCentral()
@@ -27,6 +43,7 @@ repositories {
 }
 
 dependencies {
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.0")
     implementation("org.jetbrains.kotlin:kotlin-script-runtime:1.4.0")
@@ -52,7 +69,7 @@ tasks {
         from(sourceSets.main.get().allSource)
     }
 
-    artifacts { 
+    artifacts {
         archives(sourcesJar)
         archives(jar)
     }
@@ -71,8 +88,11 @@ tasks {
 
 publishing {
     publications {
-        create<MavenPublication>("default") {
+        create<MavenPublication>(publicationName) {
             from(components["java"])
+            groupId = group
+            artifactId = project.name
+            version = project.version.toString()
             pom {
                 url.set(gitHubUrl)
                 inceptionYear.set("2020")
@@ -94,8 +114,8 @@ publishing {
                     url.set("${gitHubUrl}/issues")
                 }
                 ciManagement {
-                    system.set("travis-ci")
-                    url.set("https://travis-ci.org/chutney-testing/${project.name}")
+                    system.set("github-ci")
+                    url.set("${gitHubUrl}/actions")
                 }
             }
         }

@@ -1,6 +1,6 @@
 # Chutney Testing Kotlin DSL
 
-[![Build Status](https://travis-ci.org/chutney-testing/chutney-kotlin-dsl.svg?branch=master)](https://travis-ci.org/chutney-testing/chutney-kotlin-dsl)
+![CI](https://github.com/chutney-testing/chutney-kotlin-dsl/workflows/CI/badge.svg)
 [![Download](https://api.bintray.com/packages/chutney-testing/maven/chutney-kotlin-dsl/images/download.svg) ](https://bintray.com/chutney-testing/maven/chutney-kotlin-dsl/_latestVersion)
 
 ## DO IT IN CODE {"NOT": "JSON"}

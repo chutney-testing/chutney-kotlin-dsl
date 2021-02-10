@@ -76,8 +76,8 @@ As a general rule, the style and formatting of commit messages should follow the
 
 ## <a name="build"></a> Build Process
 
-We use travis to build and releas this library.
-[![Build Status](https://travis-ci.org/chutney-testing/chutney-kotlin-dsl.svg?branch=master)](https://travis-ci.org/chutney-testing/chutney-kotlin-dsl)
+We use github actions to build and releas this library.
+![CI](https://github.com/chutney-testing/chutney-kotlin-dsl/workflows/CI/badge.svg)
 
 ## <a name="release"></a> Release Management
 
@@ -99,7 +99,7 @@ We use [Reckon gradle plugin](https://github.com/ajoberstar/reckon).
 
 Release is just pushing a tag with version information :
 ```shell
-  ./gradlew reckonTagCreate -Preckon.stage=<final|scnapshot> -Preckon.scope=<major|minor|patch>
+  ./gradlew reckonTagCreate -Preckon.stage=<final|snapshot> -Preckon.scope=<major|minor|patch>
   git push origin <TAG_VERSION> 
 ```
 
