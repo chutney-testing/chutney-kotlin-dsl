@@ -147,7 +147,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         target: String,
         uri: String,
         headers: Map<String, Any> = mapOf(),
-        body: Any,
+        body: Any?,
         timeout: String = "2 sec",
         outputs: Map<String, Any> = mapOf("body".toSpelPair()),
         strategy: Strategy? = null
@@ -155,7 +155,18 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
         implementation = ChutneyStepImpl(
             type = "http-post",
             target = target,
-            inputs = listOfNotNull("uri" to uri,  ("headers" to headers).takeIf { headers.isNotEmpty() }, "body" to body, "timeout" to timeout).toMap(),
+            inputs = listOfNotNull(
+                "uri" to uri,
+                ("headers" to headers).takeIf { headers.isNotEmpty() },
+                ("body" to body).takeIf {
+                    when (body) {
+                        is String? -> body.isNullOrBlank().not()
+                        is Map<*, *>? -> body.isNullOrEmpty().not()
+                        else -> false
+                    }
+                },
+                "timeout" to timeout
+            ).toMap(),
             outputs = outputs
         )
         this.strategy = strategy
@@ -555,6 +566,14 @@ object Mapper {
         .registerModule(KotlinModule())
         .setDefaultPrettyPrinter(pp)
         .enable(SerializationFeature.INDENT_OUTPUT)
+
+    fun toJson(value: Any): String {
+        var json = mapper.writeValueAsString(value)
+        json = json.replace(": [ ]", ": []")
+        json = json.replace(": { }", ": {}")
+        json += System.getProperty("line.separator")
+        return json
+    }
 }
 
 class ChutneyStep(
@@ -575,12 +594,12 @@ class ChutneyScenario(
     @JsonIgnore val id: Int?,
     val title: String = "",
     val description: String = "",
-    val givens: List<ChutneyStep> = mutableListOf(),
-    val `when`: ChutneyStep? = null,
-    val thens: List<ChutneyStep> = mutableListOf()
+    @JsonInclude(NON_EMPTY) val givens: List<ChutneyStep> = mutableListOf(),
+    @JsonInclude(NON_NULL) val `when`: ChutneyStep? = null,
+    @JsonInclude(NON_EMPTY) val thens: List<ChutneyStep> = mutableListOf()
 ) {
 
     override fun toString(): String {
-        return Mapper.mapper.writeValueAsString(this) + System.getProperty("line.separator")
+        return Mapper.toJson(this)
     }
 }
