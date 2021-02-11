@@ -95,7 +95,7 @@ class ChutneyStepBuilder(var description: String = "", var strategy: Strategy? =
     }
 
     fun Step(description: String = "", block: ChutneyStepBuilder.() -> Unit) {
-        subSteps.add(ChutneyStepBuilder(description, strategy).apply(block).build())
+        subSteps.add(ChutneyStepBuilder(description).apply(block).build())
     }
 
     fun ContextPutTask(entries: Map<String, Any>, outputs: Map<String, Any> = mapOf()) {
