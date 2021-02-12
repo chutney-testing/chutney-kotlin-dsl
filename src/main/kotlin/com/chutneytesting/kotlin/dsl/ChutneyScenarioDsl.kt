@@ -66,9 +66,9 @@ class ChutneyScenarioBuilder(val id: Int? = null, val title: String = "") {
     }
 
     fun build(): ChutneyScenario = ChutneyScenario(id, title, description, givens, `when`, thens)
-
 }
 
+@JsonInclude(NON_EMPTY)
 open class Strategy(val type: String, val parameters: Map<String, String> = emptyMap())
 open class RetryTimeOutStrategy(timeout: String, retryDelay: String) :
     Strategy(type = "retry-with-timeout", parameters = mapOf("timeOut" to timeout, "retryDelay" to retryDelay))

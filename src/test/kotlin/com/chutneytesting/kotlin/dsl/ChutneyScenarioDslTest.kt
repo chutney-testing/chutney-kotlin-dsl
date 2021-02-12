@@ -7,7 +7,7 @@ import org.junit.Test
 class ChutneyScenarioDslTest {
 
     @Test
-    fun `abe to create chutney scenario using kotlin dsl`() {
+    fun `able to create chutney scenario using kotlin dsl`() {
 
         val `swapi GET people record` = Scenario(title = "swapi GET people record") {
             Given("I set get people service api endpoint") {
@@ -108,6 +108,29 @@ class ChutneyScenarioDslTest {
         }
 
         "$`swapi GET people record`" `should strictly equal json` "/get-people.chutney.json".asResource()
+
+    }
+
+    @Test
+    fun `abe to create chutney scenario using kotlin dsl with softAssertions`() {
+
+        fun declareUri(): ChutneyStepBuilder.() -> Unit = { ContextPutTask(entries = mapOf("uri" to "api/people/1")) }
+
+        val `swapi GET people record` = Scenario(title = "swapi GET people record") {
+            Given("I set get people service api endpoint", declareUri())
+            When("I send GET HTTP request") {
+                HttpGetTask(target = "swapi.dev", uri = "uri".spEL())
+            }
+            Then("I receive valid HTTP response", strategy = SoftAssertStrategy()) {
+                JsonAssertTask(
+                    document = "body".spEL(),
+                    expected = mapOf("$.name" to "Luke Skywalker", "$.species" to emptyArray<String>())
+                )
+            }
+        }
+
+        // create this file get-people-multiple-assertions-soft-strategy.chutney.json
+        "$`swapi GET people record`" `should equal json` "/get-people-multiple-assertions-soft-strategy.chutney.json".asResource()
 
     }
 
