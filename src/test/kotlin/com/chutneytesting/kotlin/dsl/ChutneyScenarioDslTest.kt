@@ -50,7 +50,7 @@ class ChutneyScenarioDslTest {
     }
 
     @Test
-    fun `abe to create chutney scenario using kotlin dsl with functions`() {
+    fun `able to create chutney scenario using kotlin dsl with functions`() {
 
         fun declareUri(): ChutneyStepBuilder.() -> Unit = { ContextPutTask(entries = mapOf("uri" to "api/people/1")) }
 
