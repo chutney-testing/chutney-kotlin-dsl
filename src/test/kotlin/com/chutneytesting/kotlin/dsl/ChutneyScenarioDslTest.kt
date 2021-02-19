@@ -69,7 +69,7 @@ class ChutneyScenarioDslTest {
     }
 
     @Test
-    fun `abe to create chutney scenario using kotlin dsl with functions and multiple assertions`() {
+    fun `able to create chutney scenario using kotlin dsl with functions and multiple assertions`() {
 
         fun declareUri(): ChutneyStepBuilder.() -> Unit = { ContextPutTask(entries = mapOf("uri" to "api/people/1")) }
 
@@ -91,7 +91,7 @@ class ChutneyScenarioDslTest {
     }
 
     @Test
-    fun `abe to create chutney scenario using kotlin dsl with extension functions`() {
+    fun `able to create chutney scenario using kotlin dsl with extension functions`() {
 
         fun ChutneyStepBuilder.declareUri() = ContextPutTask(entries = mapOf("uri" to "api/people/1"))
 
@@ -112,7 +112,7 @@ class ChutneyScenarioDslTest {
     }
 
     @Test
-    fun `abe to create chutney scenario using kotlin dsl with softAssertions`() {
+    fun `able to create chutney scenario using kotlin dsl with softAssertions`() {
 
         fun declareUri(): ChutneyStepBuilder.() -> Unit = { ContextPutTask(entries = mapOf("uri" to "api/people/1")) }
 
