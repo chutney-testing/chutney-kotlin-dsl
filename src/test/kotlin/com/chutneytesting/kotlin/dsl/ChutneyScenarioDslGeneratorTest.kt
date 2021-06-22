@@ -1,11 +1,13 @@
 package com.chutneytesting.kotlin.dsl
 
 import com.gregwoodfill.assert.`should equal json`
-import de.swirtz.ktsrunner.objectloader.KtsObjectLoader
 import org.junit.Test
+import javax.script.ScriptEngine
+import javax.script.ScriptEngineManager
 import kotlin.test.assertEquals
 
 class ChutneyScenarioDslGeneratorTest {
+
     @Test
     fun `abe to create kotlin chutney scenario from json`() {
 
@@ -33,8 +35,13 @@ class ChutneyScenarioDslGeneratorTest {
     @Test
     fun `abe to compile kotlin dsl chutney scenario to json`() {
         val scriptContent = "/get-people.chutney.kts".asResource()
-        val fromScript: ChutneyScenario = KtsObjectLoader().load(scriptContent)
+        val fromScript: ChutneyScenario = load(scriptContent)
 
         "$fromScript" `should equal json` "/get-people.chutney.json".asResource()
+    }
+
+    inline fun <reified T> load(script: String) : T {
+        val engine: ScriptEngine = ScriptEngineManager().getEngineByExtension("kts")
+        return engine.eval(script) as T
     }
 }

@@ -37,9 +37,6 @@ bintray {
 repositories {
     mavenCentral()
     jcenter()
-    maven {
-        setUrl("https://dl.bintray.com/s1m0nw1/KtsRunner")
-    }
 }
 
 dependencies {
@@ -50,8 +47,8 @@ dependencies {
 
     testImplementation(kotlin("test-junit"))
     testImplementation("com.gregwoodfill.assert:kotlin-json-assert:0.1.0")
-    testImplementation("de.swirtz:ktsRunner:0.0.8")
     testImplementation("org.springframework:spring-expression:5.1.5.RELEASE")
+    testImplementation(kotlin("scripting-jsr223"))
 }
 
 tasks.withType<KotlinCompile> {

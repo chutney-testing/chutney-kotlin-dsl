@@ -135,7 +135,6 @@ class ChutneyFunctionsTest {
 
     @Test
     fun `use getSoapBody function`() {
-        val prefixes = mapOf("prefix" to "ns")
         assertFailsWith<IllegalArgumentException> { getSoapBody("", "pass", "body") }
         assertFailsWith<IllegalArgumentException> { getSoapBody("user", "", "body") }
         assertFailsWith<IllegalArgumentException> { getSoapBody("user", "pass", "") }
