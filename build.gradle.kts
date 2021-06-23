@@ -44,6 +44,8 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.0")
     implementation("org.jetbrains.kotlin:kotlin-script-runtime:1.4.0")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
 
     testImplementation(kotlin("test-junit"))
     testImplementation("com.gregwoodfill.assert:kotlin-json-assert:0.1.0")

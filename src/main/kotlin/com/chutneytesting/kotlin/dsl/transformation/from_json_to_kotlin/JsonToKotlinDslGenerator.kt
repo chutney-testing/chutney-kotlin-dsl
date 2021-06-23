@@ -1,5 +1,9 @@
-package com.chutneytesting.kotlin.dsl
+package com.chutneytesting.kotlin.dsl.transformation.from_json_to_kotlin
 
+import com.chutneytesting.kotlin.dsl.ChutneyScenario
+import com.chutneytesting.kotlin.dsl.ChutneyStep
+import com.chutneytesting.kotlin.dsl.ChutneyStepImpl
+import com.chutneytesting.kotlin.dsl.Strategy
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.File
