@@ -2,6 +2,7 @@ package com.chutneytesting.kotlin.util.http
 
 import com.chutneytesting.kotlin.dsl.transformation.from_component_to_kotlin.RawImplementationMapper
 import com.chutneytesting.kotlin.dsl.transformation.from_component_to_kotlin.StepImplementation
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
@@ -33,7 +34,7 @@ object HttpClient {
     }
 
     inline fun <reified T> execute(serverInfo: ChutneyServerInfo, query: String, requestMethod: String, body: String): T {
-        val url = URL(query)
+        val url = URL(serverInfo.remoteServerUrl + query)
 
         val remoteUser = serverInfo.remoteUserName
         val remotePassword = serverInfo.remoteUserPassword
@@ -58,10 +59,10 @@ object HttpClient {
         try {
             val inputStream = BufferedInputStream(connection.inputStream)
             val reader: Reader = InputStreamReader(inputStream, "UTF-8")
-            val module: SimpleModule = SimpleModule()
-            module.addDeserializer(StepImplementation., RawImplementationMapper())
+            val module = SimpleModule()
+            module.addDeserializer(StepImplementation::class.java, RawImplementationMapper(null))
             val mapper = jacksonObjectMapper().registerModule(module)
-            return mapper.readValue(reader, T::class.java)
+            return mapper.readValue(reader, object : TypeReference<T>() {})
         } catch (e: Exception) {
             throw e
         }

@@ -284,7 +284,7 @@ fun mapHttpPutTask(implementation: ChutneyStepImpl): String {
     }"""
 }
 
-private fun mapContexPutTask(implementation: ChutneyStepImpl): String {
+fun mapContexPutTask(implementation: ChutneyStepImpl): String {
     val input = implementation.inputs
     val entries = inputAsMap(input, "entries")
     val listOfArgs = listOf(
