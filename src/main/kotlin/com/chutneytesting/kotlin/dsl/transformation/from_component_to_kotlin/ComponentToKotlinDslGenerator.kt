@@ -1,36 +1,45 @@
 package com.chutneytesting.kotlin.dsl.transformation.from_component_to_kotlin
 
+import com.chutneytesting.kotlin.dsl.SSH_CLIENT_CHANNEL
 import com.chutneytesting.kotlin.util.http.ChutneyServerInfo
 import com.chutneytesting.kotlin.util.http.HttpClient
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.apache.commons.lang3.StringEscapeUtils
 
 fun generateDsl(serverInfo: ChutneyServerInfo) {
     val allComponents: List<ComposableStepDto> = HttpClient.get(serverInfo, "/api/steps/v1/all")
     var result = ""
     allComponents.forEach { component ->
-        if (component.steps?.size!! > 0) {
+        if (component.steps?.size!! == 0) {
             // Leaf component
-            result += generateComponent(component) + "\n"
+            result += (generateComponent(component) + "\n")
 
         } else {
             // Parent component
-            result += generateParentComponent(component) + "\n"
+            result += (generateParentComponent(component) + "\n")
         }
     }
-
+    System.out.println(result)
 }
 
 private fun generateParentComponent(component: ComposableStepDto): String {
-    return component.steps?.let {
-        steps -> return steps.map {
-
+    var result = """
+        ${kotlinHeader(component)}
+        ${kotlinFunctionName(component)}
+    """
+    result += component.steps?.let {
+        steps -> steps.map { step ->
+             """
+                ${kotlinCallFunction(step)}
+            """
         }
         .joinToString(separator = "\n")
 
     } ?: run {
-       return ""
+        ""
     }
-
+    result+= "}"
+    return result
 }
 
 private fun generateComponent(component: ComposableStepDto): String {
@@ -48,13 +57,16 @@ private fun generateComponent(component: ComposableStepDto): String {
         "sleep" -> mapSleepTask(component)
         "assert" -> mapAssertsTask(component)
         "debug" -> mapDebugTask(component)
-        else -> mapTODO()
+        "groovy" -> mapGroovyTask(component)
+        "ssh-client" -> mapSshClientTask(component)
+        "compare" -> mapCompareTask(component)
+        else -> mapTODO(component)
     }
 }
 
-private fun mapTODO(): String {
+private fun mapTODO(component: ComposableStepDto): String {
     return """{
-       TODO("Not yet implemented")
+       TODO("Not yet implemented") ${component.task?.type}
     }"""
 }
 
@@ -62,6 +74,50 @@ private fun mapDebugTask(implementation: ComposableStepDto): String {
     return createStep(implementation, "", "DebugTask")
 }
 
+private fun mapCompareTask(implementation: ComposableStepDto): String {
+    val inputs = implementation.task?.inputs
+    val actual = inputAsString(inputs, "actual")
+    val expected = inputAsString(inputs, "expected")
+    val mode = inputAsString(inputs, "mode")
+    val listOfArgs = listOf(
+        "actual" to actual,
+        "expected" to expected,
+        "mode" to mode
+    )
+    val args = mapArgs(listOfArgs)
+    return createStep(implementation, args, "CompareTask")
+}
+
+private fun mapGroovyTask(implementation: ComposableStepDto): String {
+    val inputs = implementation.task?.inputs
+    val script = inputAsString(inputs, "script")
+    val parameters =  inputAsMap(inputs, "parameters")
+    val listOfArgs = listOf(
+        "script" to "\"\"" + script + "\"\"",
+        "parameters" to parameters
+    )
+    val args = mapArgs(listOfArgs)
+    return createStep(implementation, args, "GroovyTask")
+}
+
+private fun mapSshClientTask(implementation: ComposableStepDto): String {
+    val target = target(implementation.task)
+    val inputs = implementation.task?.inputs
+    var channel = SSH_CLIENT_CHANNEL.COMMAND
+    try {
+        channel = SSH_CLIENT_CHANNEL.valueOf(inputAsString(inputs, "channel"))
+    } catch (e: Exception) {
+    }
+
+    val commands =  inputs?.let { inputAsList(it, "commands") }
+    val listOfArgs = listOf(
+        "commands" to commands,
+        "channel" to "SSH_CLIENT_CHANNEL." + channel,
+        "target" to target
+    )
+    val args = mapArgs(listOfArgs)
+    return createStep(implementation, args, "SshClientTask")
+}
 private fun mapSleepTask(implementation: ComposableStepDto): String {
     val inputs = implementation.task?.inputs
     val duration = inputAsString(inputs, "duration")
@@ -74,7 +130,7 @@ private fun mapSleepTask(implementation: ComposableStepDto): String {
 
 fun mapAssertsTask(implementation: ComposableStepDto): String {
     val input = implementation.task?.inputs
-    val asserts = input?.let { inputAsMapList(it, "asserts") }
+    val asserts = input?.let { inputAsList(it, "asserts") }
     val listOfArgs = listOf(
         "asserts" to asserts
     )
@@ -256,7 +312,9 @@ private fun createStep(
         }
      """
 
-private fun kotlinFunctionName(implementation: ComposableStepDto) = " public fun ChutneyStepBuilder.`${implementation.name}`(): "
+private fun kotlinFunctionName(implementation: ComposableStepDto) = " public fun ChutneyStepBuilder.`${implementation.name}`() { "
+
+private fun kotlinCallFunction(implementation: ComposableStepDto) = " `${implementation.name}`() "
 
 private fun kotlinHeader(implementation: ComposableStepDto) =
     """ /**
@@ -276,7 +334,7 @@ public fun inputAsString(inputs: Map<String, Any?>?, key: String) =
 
 public fun mapArgs(listOfArgs: List<Pair<String, Any?>>): String {
     return listOfArgs
-        .filterNot { it.second == null || it.second == "".wrapWithQuotes() || it.second == "mapOf()" || it.second == "listOf()" }
+        .filterNot { it.second == null || it.second == "".wrapWithTripleQuotes() || it.second == "mapOf()" || it.second == "listOf()" }
         .joinToString(", ") { it.first + " = " + it.second }
 }
 
@@ -292,7 +350,9 @@ public fun inputAsMap(inputs: Map<String, Any?>?, key: String) =
 public fun String.wrapWithQuotes(): String {
     return "\"$this\""
 }
-
+public fun String.wrapWithTripleQuotes(): String {
+    return "\"\"\"$this\"\"\""
+}
 public fun listOfConstructor(
     list: List<String>?
 ): String {
@@ -339,10 +399,9 @@ public fun mapOfConstructor(
 }
 
 public fun escapeKotlin(s: String): String {
-    return s//.replace("'$", "'£")
+    return s
         .replace("\${", "\\\${")
         .replace("\"", "\\\"")
-    //.replace("'£", "'$")
 }
 
 public fun uri(implementation: StepImplementation?): String {
@@ -359,6 +418,6 @@ public fun uri(implementation: StepImplementation?): String {
 public fun target(implementation: StepImplementation?): String = (implementation?.target as String).wrapWithQuotes()
 
 fun main() {
-    val serverInfo = ChutneyServerInfo("https://", "user", "user");
+    val serverInfo = ChutneyServerInfo("https://", "", "");
     generateDsl(serverInfo);
 }
